@@ -1,0 +1,13 @@
+mes,ano,regiao,total_entregas,taxa_sucesso_1a_tentativa_pct,tempo_medio_entrega_min,produtividade_entregador_dia,taxa_reentrega_pct
+Jan,2025,São Paulo Capital,5200,88,44,26,10.2
+Jan,2025,Grande SP,3100,90,41,27,9.5
+Jan,2025,Rio de Janeiro,2400,89,43,28,9.8
+Jan,2025,Belo Horizonte,1700,91,40,29,8.5
+Jun,2025,São Paulo Capital,6200,93,38,32,6.2
+Jun,2025,Grande SP,3800,94,36,33,5.8
+Jun,2025,Rio de Janeiro,3100,93,37,34,6.0
+Jun,2025,Belo Horizonte,2700,95,35,35,5.2
+Dez,2025,São Paulo Capital,7800,95,32,38,4.5
+Dez,2025,Grande SP,4800,96,30,39,4.2
+Dez,2025,Rio de Janeiro,3900,95,31,40,4.6
+Dez,2025,Belo Horizonte,3000,97,29,41,3.8

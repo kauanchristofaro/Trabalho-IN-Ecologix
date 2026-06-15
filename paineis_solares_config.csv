@@ -1,0 +1,2 @@
+frota_veiculos,km_dia_veiculo,qtd_paineis,potencia_painel_w,potencia_total_kwp,kwh_dia_por_painel,kwh_geracao_solar_mes,custo_instalacao_brl,cobertura_solar_pct,economia_mensal_media_brl,mes_roi,semestre_roi,kwh_mes_frota
+20,120,100,550,55.0,2.48,5445,250000,47,3429,74,13,11616

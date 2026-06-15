@@ -1,0 +1,25 @@
+mes,ano,empresa,tipo_frota,frota_veiculos,km_mes_frota,bandeira_tarifaria,tarifa_kwh,kwh_consumo_mes,faturamento_brl,custo_combustivel_brl,custo_manutencao_brl,emissao_co2_toneladas,total_entregas,margem_operacional_pct
+Jan,2025,EcoLogix Solutions,Eletrica,20,52800,Verde,0.82,11616,251826,9525,11800,0.93,12571,15.5
+Jan,2025,LogiTrans Express,Convencional,20,52800,Verde,0.82,11616,239235,38628,22600,9.77,12571,11.2
+Fev,2025,EcoLogix Solutions,Eletrica,20,52589,Amarela,0.83885,11283,257127,9465,11800,0.9,12827,17.0
+Fev,2025,LogiTrans Express,Convencional,20,52589,Amarela,0.83885,11283,244271,38474,22600,9.73,12827,12.7
+Mar,2025,EcoLogix Solutions,Eletrica,20,52378,Amarela,0.83885,10952,261880,9187,11800,0.88,13094,18.3
+Mar,2025,LogiTrans Express,Convencional,20,52378,Amarela,0.83885,10952,248786,38320,22600,9.69,13094,14.0
+Abr,2025,EcoLogix Solutions,Eletrica,20,52166,Vermelha P1,0.86463,10623,267520,9185,11800,0.85,13376,18.5
+Abr,2025,LogiTrans Express,Convencional,20,52166,Vermelha P1,0.86463,10623,254144,38165,22600,9.65,13376,14.2
+Mai,2025,EcoLogix Solutions,Eletrica,20,51955,Vermelha P1,0.86463,10297,273440,8903,11800,0.82,13672,19.9
+Mai,2025,LogiTrans Express,Convencional,20,51955,Vermelha P1,0.86463,10297,259768,38010,22600,9.61,13672,15.6
+Jun,2025,EcoLogix Solutions,Eletrica,20,51744,Vermelha P2,0.89877,9972,279700,8963,11800,0.8,13985,20.3
+Jun,2025,LogiTrans Express,Convencional,20,51744,Vermelha P2,0.89877,9972,265715,37856,22600,9.57,13985,16.0
+Jul,2025,EcoLogix Solutions,Eletrica,20,51533,Vermelha P2,0.89877,9651,286300,8674,11800,0.77,14315,20.4
+Jul,2025,LogiTrans Express,Convencional,20,51533,Vermelha P2,0.89877,9651,271985,37702,22600,9.53,14315,16.1
+Ago,2025,EcoLogix Solutions,Eletrica,20,51322,Vermelha P1,0.86463,9331,293347,8068,11800,0.75,14663,20.7
+Ago,2025,LogiTrans Express,Convencional,20,51322,Vermelha P1,0.86463,9331,278680,37547,22600,9.49,14663,16.4
+Set,2025,EcoLogix Solutions,Eletrica,20,51110,Amarela,0.83885,9014,300640,7561,11800,0.72,15032,20.6
+Set,2025,LogiTrans Express,Convencional,20,51110,Amarela,0.83885,9014,285608,37392,22600,9.46,15032,16.3
+Out,2025,EcoLogix Solutions,Eletrica,20,50899,Verde,0.82,8699,308480,7133,11800,0.7,15424,20.4
+Out,2025,LogiTrans Express,Convencional,20,50899,Verde,0.82,8699,293056,37238,22600,9.42,15424,16.1
+Nov,2025,EcoLogix Solutions,Eletrica,20,50688,Verde,0.82,8387,316800,6877,11800,0.67,15840,20.7
+Nov,2025,LogiTrans Express,Convencional,20,50688,Verde,0.82,8387,300960,37083,22600,9.38,15840,16.4
+Dez,2025,EcoLogix Solutions,Eletrica,20,50477,Amarela,0.83885,8076,325660,6775,11800,0.65,16283,21.0
+Dez,2025,LogiTrans Express,Convencional,20,50477,Amarela,0.83885,8076,309377,36929,22600,9.34,16283,16.7

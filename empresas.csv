@@ -1,0 +1,3 @@
+empresa_id,empresa,tipo_frota,cidade_sede,frota_veiculos,ano_fundacao,descricao
+1,EcoLogix Solutions,Eletrica,São Paulo,20,2019,Operadora de logística urbana com frota 100% elétrica (20 veículos) e hubs de recarga próprios
+2,LogiTrans Express,Convencional,São Paulo,20,2015,Operadora tradicional de entregas last-mile com frota a diesel (20 veículos) e veículos flex
