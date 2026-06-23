@@ -43,6 +43,22 @@ NEW_MEASURES = [
         "Margem Operacional Media LogiTrans",
         'CALCULATE(AVERAGE(ComparativoEmpresas[margem_operacional_pct]), ComparativoEmpresas[empresa] = "LogiTrans Express")',
     ),
+    (
+        "Custo Total Logitrans",
+        'CALCULATE(SUM(ComparativoEmpresas[custo_combustivel_brl]), ComparativoEmpresas[empresa] = "LogiTrans Express") + CALCULATE(SUM(ComparativoEmpresas[custo_manutencao_brl]), ComparativoEmpresas[empresa] = "LogiTrans Express")',
+    ),
+    (
+        "CO2 Emitido por Real Logitrans",
+        'DIVIDE(CALCULATE(SUM(ComparativoEmpresas[emissao_co2_toneladas]), ComparativoEmpresas[empresa] = "LogiTrans Express") * 1000, CALCULATE(SUM(ComparativoEmpresas[custo_combustivel_brl]), ComparativoEmpresas[empresa] = "LogiTrans Express") + CALCULATE(SUM(ComparativoEmpresas[custo_manutencao_brl]), ComparativoEmpresas[empresa] = "LogiTrans Express"))',
+    ),
+    (
+        "CO2 Evitado por Real EcoLogix",
+        'VAR InvestimentoEcoLogix = 3750000 VAR CO2FrotaKg = (CALCULATE(SUM(ComparativoEmpresas[emissao_co2_toneladas]), ComparativoEmpresas[empresa] = "LogiTrans Express") - CALCULATE(SUM(ComparativoEmpresas[emissao_co2_toneladas]), ComparativoEmpresas[empresa] = "EcoLogix Solutions")) * 1000 VAR Meses = CALCULATE(DISTINCTCOUNT(ComparativoEmpresas[periodo_id]), ComparativoEmpresas[empresa] = "EcoLogix Solutions") VAR CO2SolarKg = Meses * 435.6 RETURN DIVIDE(CO2FrotaKg + CO2SolarKg, InvestimentoEcoLogix)',
+    ),
+    (
+        "Economia Total por Real EcoLogix",
+        'VAR InvestimentoEcoLogix = 3750000 VAR EconomiaFrota = CALCULATE(SUM(ComparativoEmpresas[custo_combustivel_brl]), ComparativoEmpresas[empresa] = "LogiTrans Express") + CALCULATE(SUM(ComparativoEmpresas[custo_manutencao_brl]), ComparativoEmpresas[empresa] = "LogiTrans Express") - CALCULATE(SUM(ComparativoEmpresas[custo_combustivel_brl]), ComparativoEmpresas[empresa] = "EcoLogix Solutions") - CALCULATE(SUM(ComparativoEmpresas[custo_manutencao_brl]), ComparativoEmpresas[empresa] = "EcoLogix Solutions") VAR Meses = CALCULATE(DISTINCTCOUNT(ComparativoEmpresas[periodo_id]), ComparativoEmpresas[empresa] = "EcoLogix Solutions") VAR EconomiaSolar = Meses * 3431 RETURN DIVIDE(EconomiaFrota + EconomiaSolar, InvestimentoEcoLogix)',
+    ),
 ]
 
 

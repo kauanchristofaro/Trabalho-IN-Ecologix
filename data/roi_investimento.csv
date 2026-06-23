@@ -1,3 +1,4 @@
-categoria_id,categoria,tipo_tecnologia,referencia_convencional,investimento_brl,economia_anual_brl,co2_evitado_anual_t,reais_por_real_investido,co2_kg_por_real
-1,Frota Eletrica,Carros Eletricos,Frota Diesel,3500000,482628,105.2,0.1379,0.0301
-2,Energia Solar,Fonte Renovável,Rede Convencional,250000,41177,5.23,0.1647,0.0209
+categoria_id,categoria,tipo_tecnologia,referencia_convencional,investimento_brl,economia_anual_brl,co2_evitado_anual_t,reais_por_real_investido,co2_kg_por_real,co2_t_por_real,payback_anos,roi_anual_pct,economia_mensal_media_brl
+1,Frota Eletrica,Carros Eletricos,Frota Diesel,3500000,482628,105.2,0.1379,0.0301,3.006e-05,7.25,13.79,40219
+2,Energia Solar,Fonte Renovável,Rede Convencional,250000,41177,5.23,0.1647,0.0209,2.092e-05,6.07,16.47,3431
+3,Total EcoLogix,Frota + Solar,LogiTrans Express (convencional),3750000,523805,110.43,0.1397,0.0294,2.945e-05,7.16,13.97,43650

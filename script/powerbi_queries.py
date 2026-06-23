@@ -69,12 +69,22 @@ TABLES = {
     "RoiInvestimento": {
         "csv": "roi_investimento.csv",
         "periodo_id": False,
-        "types": '{"categoria_id", Int64.Type}, {"categoria", Text.Type}, {"tipo_tecnologia", Text.Type}, {"referencia_convencional", Text.Type}, {"investimento_brl", Int64.Type}, {"economia_anual_brl", Int64.Type}, {"co2_evitado_anual_t", Number.Type}, {"reais_por_real_investido", Number.Type}, {"co2_kg_por_real", Number.Type}',
+        "types": '{"categoria_id", Int64.Type}, {"categoria", Text.Type}, {"tipo_tecnologia", Text.Type}, {"referencia_convencional", Text.Type}, {"investimento_brl", Int64.Type}, {"economia_anual_brl", Int64.Type}, {"co2_evitado_anual_t", Number.Type}, {"reais_por_real_investido", Number.Type}, {"co2_kg_por_real", Number.Type}, {"co2_t_por_real", Number.Type}, {"payback_anos", Number.Type}, {"roi_anual_pct", Number.Type}, {"economia_mensal_media_brl", Int64.Type}',
     },
     "RoiInvestimentoMensal": {
         "csv": "roi_investimento_mensal.csv",
         "periodo_id": True,
-        "types": '{"periodo_id", Int64.Type}, {"mes", Text.Type}, {"ano", Int64.Type}, {"categoria", Text.Type}, {"economia_mensal_brl", Int64.Type}, {"co2_evitado_mensal_kg", Number.Type}, {"economia_acumulada_brl", Int64.Type}, {"co2_evitado_acumulado_kg", Number.Type}, {"investimento_brl", Int64.Type}',
+        "types": '{"periodo_id", Int64.Type}, {"mes", Text.Type}, {"ano", Int64.Type}, {"categoria", Text.Type}, {"economia_mensal_brl", Int64.Type}, {"co2_evitado_mensal_kg", Number.Type}, {"economia_acumulada_brl", Int64.Type}, {"co2_evitado_acumulado_kg", Number.Type}, {"investimento_brl", Int64.Type}, {"reais_economia_por_real_acum", Number.Type}, {"co2_t_por_real_acum", Number.Type}',
+    },
+    "SimuladorTaxas": {
+        "csv": "simulador_taxas.csv",
+        "periodo_id": False,
+        "types": '{"taxa_id", Int64.Type}, {"descricao", Text.Type}, {"co2_kg_por_real", Number.Type}, {"economia_por_real", Number.Type}, {"despesa_ecologix_por_real", Number.Type}, {"despesa_logitrans_por_real", Number.Type}, {"co2_kg_emitido_ecologix_por_real", Number.Type}, {"co2_kg_emitido_logitrans_por_real", Number.Type}, {"investimento_referencia_brl", Int64.Type}, {"custo_anual_ecologix_brl", Int64.Type}, {"custo_anual_logitrans_brl", Int64.Type}, {"co2_anual_ecologix_t", Number.Type}, {"co2_anual_logitrans_t", Number.Type}',
+    },
+    "SimuladorInput": {
+        "csv": "simulador_input.csv",
+        "periodo_id": False,
+        "types": '{"valor_reais", Int64.Type}, {"rotulo", Text.Type}',
     },
 }
 

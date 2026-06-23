@@ -424,6 +424,26 @@ def gerar_energia_solar():
     print(f"  Economia mensal média: R$ {config[0]['economia_mensal_media_brl']:,}")
 
 
+def _linha_roi_resumo(categoria_id, categoria, tipo_tecnologia, referencia, investimento, economia_anual, co2_t):
+    """Monta linha de resumo ROI com métricas derivadas por categoria."""
+    co2_kg = co2_t * 1000
+    return {
+        "categoria_id": categoria_id,
+        "categoria": categoria,
+        "tipo_tecnologia": tipo_tecnologia,
+        "referencia_convencional": referencia,
+        "investimento_brl": investimento,
+        "economia_anual_brl": economia_anual,
+        "co2_evitado_anual_t": co2_t,
+        "reais_por_real_investido": round(economia_anual / investimento, 4),
+        "co2_kg_por_real": round(co2_kg / investimento, 4),
+        "co2_t_por_real": round(co2_t / investimento, 8),
+        "payback_anos": round(investimento / economia_anual, 2),
+        "roi_anual_pct": round(economia_anual / investimento * 100, 2),
+        "economia_mensal_media_brl": round(economia_anual / 12),
+    }
+
+
 def gerar_roi_investimento():
     """ROI sustentável: economia e CO2 evitado por real investido (frota elétrica e solar)."""
     serie = read_csv("comparativo_serie.csv")
@@ -434,6 +454,9 @@ def gerar_roi_investimento():
     acum_frota_co2_kg = 0
     acum_solar_eco = 0
     acum_solar_co2_kg = 0
+    acum_total_eco = 0
+    acum_total_co2_kg = 0
+    investimento_total = INVESTIMENTO_FROTA_ELETRICA + CUSTO_INSTALACAO
     kwh_solar_mes = kwh_geracao_solar_mes()
     co2_solar_mes_kg = round(kwh_solar_mes * FATOR_CO2_KWH, 1)
 
@@ -465,6 +488,8 @@ def gerar_roi_investimento():
             "economia_acumulada_brl": acum_frota_eco,
             "co2_evitado_acumulado_kg": round(acum_frota_co2_kg, 1),
             "investimento_brl": INVESTIMENTO_FROTA_ELETRICA,
+            "reais_economia_por_real_acum": round(acum_frota_eco / INVESTIMENTO_FROTA_ELETRICA, 6),
+            "co2_t_por_real_acum": round(acum_frota_co2_kg / 1000 / INVESTIMENTO_FROTA_ELETRICA, 8),
         })
 
         eco_solar = int(energia_por_mes[mes]["economia_mensal_brl"]) if mes in energia_por_mes else 0
@@ -480,12 +505,33 @@ def gerar_roi_investimento():
             "economia_acumulada_brl": acum_solar_eco,
             "co2_evitado_acumulado_kg": round(acum_solar_co2_kg, 1),
             "investimento_brl": CUSTO_INSTALACAO,
+            "reais_economia_por_real_acum": round(acum_solar_eco / CUSTO_INSTALACAO, 6),
+            "co2_t_por_real_acum": round(acum_solar_co2_kg / 1000 / CUSTO_INSTALACAO, 8),
+        })
+
+        eco_total_mes = eco_frota + eco_solar
+        co2_total_mes_kg = co2_frota_kg + co2_solar_mes_kg
+        acum_total_eco += eco_total_mes
+        acum_total_co2_kg += co2_total_mes_kg
+        mensal.append({
+            "periodo_id": pid,
+            "mes": mes,
+            "ano": r["ano"],
+            "categoria": "Total EcoLogix",
+            "economia_mensal_brl": eco_total_mes,
+            "co2_evitado_mensal_kg": round(co2_total_mes_kg, 1),
+            "economia_acumulada_brl": acum_total_eco,
+            "co2_evitado_acumulado_kg": round(acum_total_co2_kg, 1),
+            "investimento_brl": investimento_total,
+            "reais_economia_por_real_acum": round(acum_total_eco / investimento_total, 6),
+            "co2_t_por_real_acum": round(acum_total_co2_kg / 1000 / investimento_total, 8),
         })
 
     mensal_fields = [
         "periodo_id", "mes", "ano", "categoria",
         "economia_mensal_brl", "co2_evitado_mensal_kg",
         "economia_acumulada_brl", "co2_evitado_acumulado_kg", "investimento_brl",
+        "reais_economia_por_real_acum", "co2_t_por_real_acum",
     ]
     write_csv("roi_investimento_mensal.csv", mensal_fields, mensal)
 
@@ -493,41 +539,34 @@ def gerar_roi_investimento():
     frota_co2_t = round(acum_frota_co2_kg / 1000, 2)
     solar_eco_anual = acum_solar_eco
     solar_co2_t = round(acum_solar_co2_kg / 1000, 2)
+    total_eco_anual = acum_total_eco
+    total_co2_t = round(acum_total_co2_kg / 1000, 2)
 
     resumo = [
-        {
-            "categoria_id": 1,
-            "categoria": "Frota Eletrica",
-            "tipo_tecnologia": "Carros Eletricos",
-            "referencia_convencional": "Frota Diesel",
-            "investimento_brl": INVESTIMENTO_FROTA_ELETRICA,
-            "economia_anual_brl": frota_eco_anual,
-            "co2_evitado_anual_t": frota_co2_t,
-            "reais_por_real_investido": round(frota_eco_anual / INVESTIMENTO_FROTA_ELETRICA, 4),
-            "co2_kg_por_real": round(frota_co2_t * 1000 / INVESTIMENTO_FROTA_ELETRICA, 4),
-        },
-        {
-            "categoria_id": 2,
-            "categoria": "Energia Solar",
-            "tipo_tecnologia": "Fonte Renovável",
-            "referencia_convencional": "Rede Convencional",
-            "investimento_brl": CUSTO_INSTALACAO,
-            "economia_anual_brl": solar_eco_anual,
-            "co2_evitado_anual_t": solar_co2_t,
-            "reais_por_real_investido": round(solar_eco_anual / CUSTO_INSTALACAO, 4),
-            "co2_kg_por_real": round(solar_co2_t * 1000 / CUSTO_INSTALACAO, 4),
-        },
+        _linha_roi_resumo(
+            1, "Frota Eletrica", "Carros Eletricos", "Frota Diesel",
+            INVESTIMENTO_FROTA_ELETRICA, frota_eco_anual, frota_co2_t,
+        ),
+        _linha_roi_resumo(
+            2, "Energia Solar", "Fonte Renovável", "Rede Convencional",
+            CUSTO_INSTALACAO, solar_eco_anual, solar_co2_t,
+        ),
+        _linha_roi_resumo(
+            3, "Total EcoLogix", "Frota + Solar", "LogiTrans Express (convencional)",
+            investimento_total, total_eco_anual, total_co2_t,
+        ),
     ]
     resumo_fields = [
         "categoria_id", "categoria", "tipo_tecnologia", "referencia_convencional",
         "investimento_brl", "economia_anual_brl", "co2_evitado_anual_t",
-        "reais_por_real_investido", "co2_kg_por_real",
+        "reais_por_real_investido", "co2_kg_por_real", "co2_t_por_real",
+        "payback_anos", "roi_anual_pct", "economia_mensal_media_brl",
     ]
     write_csv("roi_investimento.csv", resumo_fields, resumo)
     print(
-        f"Gerado: roi_investimento.csv | Frota: R$ {frota_eco_anual:,}/ano "
-        f"({resumo[0]['reais_por_real_investido']:.4f} R$/R$) | "
-        f"Solar: R$ {solar_eco_anual:,}/ano ({resumo[1]['reais_por_real_investido']:.4f} R$/R$)"
+        f"Gerado: roi_investimento.csv | Total: R$ {investimento_total:,} investidos | "
+        f"R$ {total_eco_anual:,}/ano economizados ({resumo[2]['reais_por_real_investido']:.4f} R$/R$) | "
+        f"{total_co2_t} t CO2 evitadas ({resumo[2]['co2_t_por_real']:.8f} t/R$)"
     )
     print(f"Gerado: roi_investimento_mensal.csv ({len(mensal)} linhas)")
 

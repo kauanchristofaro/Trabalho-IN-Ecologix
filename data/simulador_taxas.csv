@@ -1,0 +1,2 @@
+taxa_id,descricao,co2_kg_por_real,economia_por_real,despesa_ecologix_por_real,despesa_logitrans_por_real,co2_kg_emitido_ecologix_por_real,co2_kg_emitido_logitrans_por_real,investimento_referencia_brl,custo_anual_ecologix_brl,custo_anual_logitrans_brl,co2_anual_ecologix_t,co2_anual_logitrans_t
+1,Total EcoLogix vs LogiTrans (2025),0.0294,0.1397,0.064778,0.193212,0.002517,0.030677,3750000,242918,724544,9.44,115.04

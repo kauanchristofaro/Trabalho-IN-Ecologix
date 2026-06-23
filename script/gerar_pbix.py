@@ -177,6 +177,10 @@ def main():
         r["co2_evitado_anual_t"] = to_float(r["co2_evitado_anual_t"])
         r["reais_por_real_investido"] = to_float(r["reais_por_real_investido"])
         r["co2_kg_por_real"] = to_float(r["co2_kg_por_real"])
+        r["co2_t_por_real"] = to_float(r["co2_t_por_real"])
+        r["payback_anos"] = to_float(r["payback_anos"])
+        r["roi_anual_pct"] = to_float(r["roi_anual_pct"])
+        r["economia_mensal_media_brl"] = to_int(r["economia_mensal_media_brl"])
         roi_resumo.append(r)
 
     roi_mensal = []
@@ -189,7 +193,30 @@ def main():
         r["economia_acumulada_brl"] = to_int(r["economia_acumulada_brl"])
         r["co2_evitado_acumulado_kg"] = to_float(r["co2_evitado_acumulado_kg"])
         r["investimento_brl"] = to_int(r["investimento_brl"])
+        r["reais_economia_por_real_acum"] = to_float(r["reais_economia_por_real_acum"])
+        r["co2_t_por_real_acum"] = to_float(r["co2_t_por_real_acum"])
         roi_mensal.append(r)
+
+    simulador_taxas = []
+    for r in read_csv("simulador_taxas.csv"):
+        r["taxa_id"] = to_int(r["taxa_id"])
+        r["co2_kg_por_real"] = to_float(r["co2_kg_por_real"])
+        r["economia_por_real"] = to_float(r["economia_por_real"])
+        r["despesa_ecologix_por_real"] = to_float(r["despesa_ecologix_por_real"])
+        r["despesa_logitrans_por_real"] = to_float(r["despesa_logitrans_por_real"])
+        r["co2_kg_emitido_ecologix_por_real"] = to_float(r["co2_kg_emitido_ecologix_por_real"])
+        r["co2_kg_emitido_logitrans_por_real"] = to_float(r["co2_kg_emitido_logitrans_por_real"])
+        r["investimento_referencia_brl"] = to_int(r["investimento_referencia_brl"])
+        r["custo_anual_ecologix_brl"] = to_int(r["custo_anual_ecologix_brl"])
+        r["custo_anual_logitrans_brl"] = to_int(r["custo_anual_logitrans_brl"])
+        r["co2_anual_ecologix_t"] = to_float(r["co2_anual_ecologix_t"])
+        r["co2_anual_logitrans_t"] = to_float(r["co2_anual_logitrans_t"])
+        simulador_taxas.append(r)
+
+    simulador_input = []
+    for r in read_csv("simulador_input.csv"):
+        r["valor_reais"] = to_int(r["valor_reais"])
+        simulador_input.append(r)
 
     b = PBIXBuilder("EcoLogix Solutions - Dashboard BI")
 
@@ -367,6 +394,10 @@ def main():
         {"name": "co2_evitado_anual_t", "data_type": "Double"},
         {"name": "reais_por_real_investido", "data_type": "Double"},
         {"name": "co2_kg_por_real", "data_type": "Double"},
+        {"name": "co2_t_por_real", "data_type": "Double"},
+        {"name": "payback_anos", "data_type": "Double"},
+        {"name": "roi_anual_pct", "data_type": "Double"},
+        {"name": "economia_mensal_media_brl", "data_type": "Int64"},
     ], rows=roi_resumo, source_csv=os.path.join(DATA, "roi_investimento.csv"))
 
     b.add_table("RoiInvestimentoMensal", [
@@ -379,7 +410,30 @@ def main():
         {"name": "economia_acumulada_brl", "data_type": "Int64"},
         {"name": "co2_evitado_acumulado_kg", "data_type": "Double"},
         {"name": "investimento_brl", "data_type": "Int64"},
+        {"name": "reais_economia_por_real_acum", "data_type": "Double"},
+        {"name": "co2_t_por_real_acum", "data_type": "Double"},
     ], rows=roi_mensal, source_csv=os.path.join(DATA, "roi_investimento_mensal.csv"))
+
+    b.add_table("SimuladorTaxas", [
+        {"name": "taxa_id", "data_type": "Int64"},
+        {"name": "descricao", "data_type": "String"},
+        {"name": "co2_kg_por_real", "data_type": "Double"},
+        {"name": "economia_por_real", "data_type": "Double"},
+        {"name": "despesa_ecologix_por_real", "data_type": "Double"},
+        {"name": "despesa_logitrans_por_real", "data_type": "Double"},
+        {"name": "co2_kg_emitido_ecologix_por_real", "data_type": "Double"},
+        {"name": "co2_kg_emitido_logitrans_por_real", "data_type": "Double"},
+        {"name": "investimento_referencia_brl", "data_type": "Int64"},
+        {"name": "custo_anual_ecologix_brl", "data_type": "Int64"},
+        {"name": "custo_anual_logitrans_brl", "data_type": "Int64"},
+        {"name": "co2_anual_ecologix_t", "data_type": "Double"},
+        {"name": "co2_anual_logitrans_t", "data_type": "Double"},
+    ], rows=simulador_taxas, source_csv=os.path.join(DATA, "simulador_taxas.csv"))
+
+    b.add_table("SimuladorInput", [
+        {"name": "valor_reais", "data_type": "Int64"},
+        {"name": "rotulo", "data_type": "String"},
+    ], rows=simulador_input, source_csv=os.path.join(DATA, "simulador_input.csv"))
 
     for tbl in [
         "EntregasMensal", "EntregasRegional", "FinanceiroMensal",
@@ -455,6 +509,30 @@ def main():
         "ComparativoEmpresas", "Reducao CO2",
         'CALCULATE(SUM(ComparativoEmpresas[emissao_co2_toneladas]), ComparativoEmpresas[empresa] = "LogiTrans Express") - CALCULATE(SUM(ComparativoEmpresas[emissao_co2_toneladas]), ComparativoEmpresas[empresa] = "EcoLogix Solutions")',
     )
+    b.add_measure(
+        "ComparativoEmpresas", "Economia Manutencao",
+        'CALCULATE(SUM(ComparativoEmpresas[custo_manutencao_brl]), ComparativoEmpresas[empresa] = "LogiTrans Express") - CALCULATE(SUM(ComparativoEmpresas[custo_manutencao_brl]), ComparativoEmpresas[empresa] = "EcoLogix Solutions")',
+    )
+    b.add_measure(
+        "ComparativoEmpresas", "Economia Operacional vs LogiTrans",
+        'CALCULATE(SUM(ComparativoEmpresas[custo_combustivel_brl]), ComparativoEmpresas[empresa] = "LogiTrans Express") + CALCULATE(SUM(ComparativoEmpresas[custo_manutencao_brl]), ComparativoEmpresas[empresa] = "LogiTrans Express") - CALCULATE(SUM(ComparativoEmpresas[custo_combustivel_brl]), ComparativoEmpresas[empresa] = "EcoLogix Solutions") - CALCULATE(SUM(ComparativoEmpresas[custo_manutencao_brl]), ComparativoEmpresas[empresa] = "EcoLogix Solutions")',
+    )
+    b.add_measure(
+        "ComparativoEmpresas", "Custo Total Logitrans",
+        'CALCULATE(SUM(ComparativoEmpresas[custo_combustivel_brl]), ComparativoEmpresas[empresa] = "LogiTrans Express") + CALCULATE(SUM(ComparativoEmpresas[custo_manutencao_brl]), ComparativoEmpresas[empresa] = "LogiTrans Express")',
+    )
+    b.add_measure(
+        "ComparativoEmpresas", "CO2 Emitido por Real Logitrans",
+        'DIVIDE(CALCULATE(SUM(ComparativoEmpresas[emissao_co2_toneladas]), ComparativoEmpresas[empresa] = "LogiTrans Express") * 1000, [Custo Total Logitrans])',
+    )
+    b.add_measure(
+        "ComparativoEmpresas", "CO2 Evitado por Real EcoLogix",
+        'VAR InvestimentoEcoLogix = 3750000 VAR CO2FrotaKg = (CALCULATE(SUM(ComparativoEmpresas[emissao_co2_toneladas]), ComparativoEmpresas[empresa] = "LogiTrans Express") - CALCULATE(SUM(ComparativoEmpresas[emissao_co2_toneladas]), ComparativoEmpresas[empresa] = "EcoLogix Solutions")) * 1000 VAR Meses = CALCULATE(DISTINCTCOUNT(ComparativoEmpresas[periodo_id]), ComparativoEmpresas[empresa] = "EcoLogix Solutions") VAR CO2SolarKg = Meses * 435.6 RETURN DIVIDE(CO2FrotaKg + CO2SolarKg, InvestimentoEcoLogix)',
+    )
+    b.add_measure(
+        "ComparativoEmpresas", "Economia Total por Real EcoLogix",
+        'VAR InvestimentoEcoLogix = 3750000 VAR EconomiaFrota = CALCULATE(SUM(ComparativoEmpresas[custo_combustivel_brl]), ComparativoEmpresas[empresa] = "LogiTrans Express") + CALCULATE(SUM(ComparativoEmpresas[custo_manutencao_brl]), ComparativoEmpresas[empresa] = "LogiTrans Express") - CALCULATE(SUM(ComparativoEmpresas[custo_combustivel_brl]), ComparativoEmpresas[empresa] = "EcoLogix Solutions") - CALCULATE(SUM(ComparativoEmpresas[custo_manutencao_brl]), ComparativoEmpresas[empresa] = "EcoLogix Solutions") VAR Meses = CALCULATE(DISTINCTCOUNT(ComparativoEmpresas[periodo_id]), ComparativoEmpresas[empresa] = "EcoLogix Solutions") VAR EconomiaSolar = Meses * 3431 RETURN DIVIDE(EconomiaFrota + EconomiaSolar, InvestimentoEcoLogix)',
+    )
 
     b.add_measure("ComparativoSerie", "Fat Eco Serie", "SUM(ComparativoSerie[faturamento_ecologix])")
     b.add_measure("ComparativoSerie", "Fat Logi Serie", "SUM(ComparativoSerie[faturamento_logitrans])")
@@ -478,11 +556,50 @@ def main():
     b.add_measure("PaineisSolaresConfig", "Cobertura Solar Pct", "MAX(PaineisSolaresConfig[cobertura_solar_pct])")
     b.add_measure("PaineisSolaresConfig", "Semestre ROI", "MAX(PaineisSolaresConfig[semestre_roi])")
 
-    b.add_measure("RoiInvestimento", "Investimento Total ROI", "SUM(RoiInvestimento[investimento_brl])")
-    b.add_measure("RoiInvestimento", "Economia Anual ROI", "SUM(RoiInvestimento[economia_anual_brl])")
-    b.add_measure("RoiInvestimento", "CO2 Evitado Anual ROI", "SUM(RoiInvestimento[co2_evitado_anual_t])")
-    b.add_measure("RoiInvestimento", "Reais por Real Investido", "AVERAGE(RoiInvestimento[reais_por_real_investido])")
-    b.add_measure("RoiInvestimento", "CO2 kg por Real", "AVERAGE(RoiInvestimento[co2_kg_por_real])")
+    b.add_measure(
+        "RoiInvestimento", "Investimento Total ROI",
+        'CALCULATE(SUM(RoiInvestimento[investimento_brl]), RoiInvestimento[categoria_id] <= 2)',
+    )
+    b.add_measure(
+        "RoiInvestimento", "Economia Anual ROI",
+        'CALCULATE(SUM(RoiInvestimento[economia_anual_brl]), RoiInvestimento[categoria_id] <= 2)',
+    )
+    b.add_measure(
+        "RoiInvestimento", "CO2 Evitado Anual ROI",
+        'CALCULATE(SUM(RoiInvestimento[co2_evitado_anual_t]), RoiInvestimento[categoria_id] <= 2)',
+    )
+    b.add_measure(
+        "RoiInvestimento", "Reais por Real Investido",
+        'DIVIDE(CALCULATE(SUM(RoiInvestimento[economia_anual_brl]), RoiInvestimento[categoria_id] <= 2), CALCULATE(SUM(RoiInvestimento[investimento_brl]), RoiInvestimento[categoria_id] <= 2))',
+    )
+    b.add_measure(
+        "RoiInvestimento", "CO2 kg por Real",
+        'DIVIDE(CALCULATE(SUM(RoiInvestimento[co2_evitado_anual_t]), RoiInvestimento[categoria_id] <= 2) * 1000, CALCULATE(SUM(RoiInvestimento[investimento_brl]), RoiInvestimento[categoria_id] <= 2))',
+    )
+    b.add_measure(
+        "RoiInvestimento", "CO2 t por Real",
+        'DIVIDE(CALCULATE(SUM(RoiInvestimento[co2_evitado_anual_t]), RoiInvestimento[categoria_id] <= 2), CALCULATE(SUM(RoiInvestimento[investimento_brl]), RoiInvestimento[categoria_id] <= 2))',
+    )
+    b.add_measure(
+        "RoiInvestimento", "Payback Anos Consolidado",
+        'DIVIDE(CALCULATE(SUM(RoiInvestimento[investimento_brl]), RoiInvestimento[categoria_id] <= 2), CALCULATE(SUM(RoiInvestimento[economia_anual_brl]), RoiInvestimento[categoria_id] <= 2))',
+    )
+    b.add_measure(
+        "RoiInvestimento", "ROI Anual Pct Consolidado",
+        'DIVIDE(CALCULATE(SUM(RoiInvestimento[economia_anual_brl]), RoiInvestimento[categoria_id] <= 2), CALCULATE(SUM(RoiInvestimento[investimento_brl]), RoiInvestimento[categoria_id] <= 2)) * 100',
+    )
+    b.add_measure(
+        "RoiInvestimento", "Investimento Total EcoLogix",
+        'CALCULATE(MAX(RoiInvestimento[investimento_brl]), RoiInvestimento[categoria] = "Total EcoLogix")',
+    )
+    b.add_measure(
+        "RoiInvestimento", "Economia Operacional Anual",
+        'CALCULATE(MAX(RoiInvestimento[economia_anual_brl]), RoiInvestimento[categoria] = "Total EcoLogix")',
+    )
+    b.add_measure(
+        "RoiInvestimento", "CO2 Evitado Total Anual",
+        'CALCULATE(MAX(RoiInvestimento[co2_evitado_anual_t]), RoiInvestimento[categoria] = "Total EcoLogix")',
+    )
     b.add_measure(
         "RoiInvestimento", "Reais por Real Frota",
         'CALCULATE(AVERAGE(RoiInvestimento[reais_por_real_investido]), RoiInvestimento[categoria] = "Frota Eletrica")',
@@ -516,6 +633,15 @@ def main():
         'CALCULATE(MAX(RoiInvestimento[economia_anual_brl]), RoiInvestimento[categoria] = "Energia Solar")',
     )
 
+    b.add_measure(
+        "RoiInvestimento", "CO2 Evitado por Real EcoLogix ROI",
+        'DIVIDE(CALCULATE(SUM(RoiInvestimento[co2_evitado_anual_t]), RoiInvestimento[categoria_id] <= 2) * 1000, CALCULATE(SUM(RoiInvestimento[investimento_brl]), RoiInvestimento[categoria_id] <= 2))',
+    )
+    b.add_measure(
+        "RoiInvestimento", "Economia Total por Real EcoLogix ROI",
+        'DIVIDE(CALCULATE(SUM(RoiInvestimento[economia_anual_brl]), RoiInvestimento[categoria_id] <= 2), CALCULATE(SUM(RoiInvestimento[investimento_brl]), RoiInvestimento[categoria_id] <= 2))',
+    )
+
     b.add_measure("RoiInvestimentoMensal", "Economia Mensal ROI", "SUM(RoiInvestimentoMensal[economia_mensal_brl])")
     b.add_measure("RoiInvestimentoMensal", "Economia Acumulada ROI", "MAX(RoiInvestimentoMensal[economia_acumulada_brl])")
     b.add_measure("RoiInvestimentoMensal", "CO2 Evitado Mensal kg", "SUM(RoiInvestimentoMensal[co2_evitado_mensal_kg])")
@@ -536,6 +662,59 @@ def main():
         "RoiInvestimentoMensal", "CO2 Acum Solar kg",
         'CALCULATE(MAX(RoiInvestimentoMensal[co2_evitado_acumulado_kg]), RoiInvestimentoMensal[categoria] = "Energia Solar")',
     )
+    b.add_measure(
+        "RoiInvestimentoMensal", "Reais Economia por Real Acum",
+        'CALCULATE(MAX(RoiInvestimentoMensal[reais_economia_por_real_acum]), RoiInvestimentoMensal[categoria] = "Total EcoLogix")',
+    )
+    b.add_measure(
+        "RoiInvestimentoMensal", "CO2 t por Real Acum",
+        'CALCULATE(MAX(RoiInvestimentoMensal[co2_t_por_real_acum]), RoiInvestimentoMensal[categoria] = "Total EcoLogix")',
+    )
+    b.add_measure(
+        "RoiInvestimentoMensal", "Economia Acum Total",
+        'CALCULATE(MAX(RoiInvestimentoMensal[economia_acumulada_brl]), RoiInvestimentoMensal[categoria] = "Total EcoLogix")',
+    )
+
+    b.add_measure("SimuladorInput", "Valor Investimento Selecionado", "SELECTEDVALUE(SimuladorInput[valor_reais], 0)")
+    b.add_measure(
+        "SimuladorInput", "Investimento Simulado (R$)",
+        "IF(HASONEVALUE(SimuladorInput[valor_reais]), SELECTEDVALUE(SimuladorInput[valor_reais]), MIN(SimuladorInput[valor_reais]))",
+    )
+    b.add_measure(
+        "SimuladorInput", "CO2 Evitado Simulado (kg)",
+        "[Investimento Simulado (R$)] * MAX(SimuladorTaxas[co2_kg_por_real])",
+    )
+    b.add_measure(
+        "SimuladorInput", "Economia Simulada (R$)",
+        "[Investimento Simulado (R$)] * MAX(SimuladorTaxas[economia_por_real])",
+    )
+    b.add_measure("SimuladorInput", "CO2 Evitado Simulado (t)", "[CO2 Evitado Simulado (kg)] / 1000")
+    b.add_measure(
+        "SimuladorInput", "Despesas Estimadas EcoLogix (R$)",
+        "[Investimento Simulado (R$)] * MAX(SimuladorTaxas[despesa_ecologix_por_real])",
+    )
+    b.add_measure(
+        "SimuladorInput", "Despesas Estimadas LogiTrans (R$)",
+        "[Investimento Simulado (R$)] * MAX(SimuladorTaxas[despesa_logitrans_por_real])",
+    )
+    b.add_measure(
+        "SimuladorInput", "Diferenca Despesas LogiTrans vs EcoLogix (R$)",
+        "[Despesas Estimadas LogiTrans (R$)] - [Despesas Estimadas EcoLogix (R$)]",
+    )
+    b.add_measure(
+        "SimuladorInput", "Carbono Emitido EcoLogix (kg)",
+        "[Investimento Simulado (R$)] * MAX(SimuladorTaxas[co2_kg_emitido_ecologix_por_real])",
+    )
+    b.add_measure(
+        "SimuladorInput", "Carbono Emitido LogiTrans (kg)",
+        "[Investimento Simulado (R$)] * MAX(SimuladorTaxas[co2_kg_emitido_logitrans_por_real])",
+    )
+    b.add_measure(
+        "SimuladorInput", "Diferenca Carbono LogiTrans vs EcoLogix (kg)",
+        "[Carbono Emitido LogiTrans (kg)] - [Carbono Emitido EcoLogix (kg)]",
+    )
+    b.add_measure("SimuladorTaxas", "Taxa CO2 kg por Real", "MAX(SimuladorTaxas[co2_kg_por_real])")
+    b.add_measure("SimuladorTaxas", "Taxa Economia por Real", "MAX(SimuladorTaxas[economia_por_real])")
 
     b.add_page("Dashboard Executivo", [
         {"name": "nps_card", "type": "card", "x": 20, "y": 20, "width": 240, "height": 110,
@@ -618,43 +797,49 @@ def main():
     ])
 
     b.add_page("Dashboard Comparativo", [
+        {"name": "economia_op_card", "type": "card", "x": 540, "y": 20, "width": 240, "height": 90,
+         "config": {"measure": "Economia Operacional vs Logitrans"}},
+        {"name": "inv_eco_card", "type": "card", "x": 800, "y": 20, "width": 220, "height": 90,
+         "config": {"measure": "Investimento Total EcoLogix"}},
+        {"name": "co2_real_card", "type": "card", "x": 1040, "y": 20, "width": 220, "height": 90,
+         "config": {"measure": "CO2 t por Real"}},
         {"name": "mes_comp_slicer", "type": "slicer", "x": 20, "y": 20, "width": 200, "height": 90,
          "config": {"column": {"table": "Calendario", "column": "mes"}}},
         {"name": "empresa_comp_slicer", "type": "slicer", "x": 240, "y": 20, "width": 280, "height": 90,
          "config": {"column": {"table": "ComparativoEmpresas", "column": "empresa"}}},
-        {"name": "economia_comb_card", "type": "card", "x": 540, "y": 20, "width": 220, "height": 90,
+        {"name": "economia_comb_card", "type": "card", "x": 540, "y": 125, "width": 220, "height": 90,
          "config": {"measure": "Economia Combustivel"}},
-        {"name": "reducao_co2_card", "type": "card", "x": 780, "y": 20, "width": 220, "height": 90,
+        {"name": "reducao_co2_card", "type": "card", "x": 780, "y": 125, "width": 220, "height": 90,
          "config": {"measure": "Reducao CO2"}},
-        {"name": "margem_comp_card", "type": "card", "x": 1020, "y": 20, "width": 240, "height": 90,
+        {"name": "margem_comp_card", "type": "card", "x": 1020, "y": 125, "width": 240, "height": 90,
          "config": {"measure": "Margem Comparativa Media"}},
-        {"name": "fat_eco_card", "type": "card", "x": 20, "y": 125, "width": 200, "height": 85,
+        {"name": "fat_eco_card", "type": "card", "x": 20, "y": 230, "width": 200, "height": 85,
          "config": {"measure": "Faturamento EcoLogix"}},
-        {"name": "fat_logi_card", "type": "card", "x": 240, "y": 125, "width": 200, "height": 85,
+        {"name": "fat_logi_card", "type": "card", "x": 240, "y": 230, "width": 200, "height": 85,
          "config": {"measure": "Faturamento LogiTrans"}},
-        {"name": "comb_eco_card", "type": "card", "x": 460, "y": 125, "width": 200, "height": 85,
+        {"name": "comb_eco_card", "type": "card", "x": 460, "y": 230, "width": 200, "height": 85,
          "config": {"measure": "Combustivel EcoLogix"}},
-        {"name": "comb_logi_card", "type": "card", "x": 680, "y": 125, "width": 200, "height": 85,
+        {"name": "comb_logi_card", "type": "card", "x": 680, "y": 230, "width": 200, "height": 85,
          "config": {"measure": "Combustivel LogiTrans"}},
-        {"name": "manut_eco_card", "type": "card", "x": 900, "y": 125, "width": 180, "height": 85,
+        {"name": "manut_eco_card", "type": "card", "x": 900, "y": 230, "width": 180, "height": 85,
          "config": {"measure": "Manutencao EcoLogix"}},
-        {"name": "manut_logi_card", "type": "card", "x": 1100, "y": 125, "width": 160, "height": 85,
+        {"name": "manut_logi_card", "type": "card", "x": 1100, "y": 230, "width": 160, "height": 85,
          "config": {"measure": "Manutencao LogiTrans"}},
-        {"name": "fat_comp_bar", "type": "clusteredBarChart", "x": 20, "y": 225, "width": 300, "height": 200,
+        {"name": "fat_comp_bar", "type": "clusteredBarChart", "x": 20, "y": 330, "width": 300, "height": 200,
          "config": {"category": {"table": "ComparativoEmpresas", "column": "empresa"}, "measure": "Faturamento Total"}},
-        {"name": "comb_comp_bar", "type": "clusteredBarChart", "x": 340, "y": 225, "width": 300, "height": 200,
+        {"name": "comb_comp_bar", "type": "clusteredBarChart", "x": 340, "y": 330, "width": 300, "height": 200,
          "config": {"category": {"table": "ComparativoEmpresas", "column": "empresa"}, "measure": "Custo Combustivel Total"}},
-        {"name": "manut_comp_bar", "type": "clusteredBarChart", "x": 660, "y": 225, "width": 300, "height": 200,
+        {"name": "manut_comp_bar", "type": "clusteredBarChart", "x": 660, "y": 330, "width": 300, "height": 200,
          "config": {"category": {"table": "ComparativoEmpresas", "column": "empresa"}, "measure": "Custo Manutencao Total"}},
-        {"name": "co2_comp_bar", "type": "clusteredBarChart", "x": 980, "y": 225, "width": 280, "height": 200,
+        {"name": "co2_comp_bar", "type": "clusteredBarChart", "x": 980, "y": 330, "width": 280, "height": 200,
          "config": {"category": {"table": "ComparativoEmpresas", "column": "empresa"}, "measure": "Emissao CO2 Total"}},
-        {"name": "fat_eco_linha", "type": "lineChart", "x": 20, "y": 440, "width": 620, "height": 130,
+        {"name": "fat_eco_linha", "type": "lineChart", "x": 20, "y": 545, "width": 620, "height": 130,
          "config": {"category": {"table": "ComparativoSerie", "column": "ano_mes"}, "measure": "Fat Eco Serie"}},
-        {"name": "fat_logi_linha", "type": "lineChart", "x": 660, "y": 440, "width": 600, "height": 130,
+        {"name": "fat_logi_linha", "type": "lineChart", "x": 660, "y": 545, "width": 600, "height": 130,
          "config": {"category": {"table": "ComparativoSerie", "column": "ano_mes"}, "measure": "Fat Logi Serie"}},
-        {"name": "comb_eco_linha", "type": "lineChart", "x": 20, "y": 585, "width": 620, "height": 130,
+        {"name": "comb_eco_linha", "type": "lineChart", "x": 20, "y": 690, "width": 620, "height": 130,
          "config": {"category": {"table": "ComparativoSerie", "column": "ano_mes"}, "measure": "Comb Eco Serie"}},
-        {"name": "comb_logi_linha", "type": "lineChart", "x": 660, "y": 585, "width": 600, "height": 130,
+        {"name": "comb_logi_linha", "type": "lineChart", "x": 660, "y": 690, "width": 600, "height": 130,
          "config": {"category": {"table": "ComparativoSerie", "column": "ano_mes"}, "measure": "Comb Logi Serie"}},
     ])
 
@@ -700,30 +885,65 @@ def main():
          "config": {"measure": "CO2 kg por Real Frota"}},
         {"name": "co2_solar_card", "type": "card", "x": 1040, "y": 20, "width": 220, "height": 90,
          "config": {"measure": "CO2 kg por Real Solar"}},
-        {"name": "inv_frota_card", "type": "card", "x": 20, "y": 125, "width": 240, "height": 85,
+        {"name": "inv_total_card", "type": "card", "x": 20, "y": 125, "width": 240, "height": 85,
+         "config": {"measure": "Investimento Total EcoLogix"}},
+        {"name": "eco_total_card", "type": "card", "x": 280, "y": 125, "width": 240, "height": 85,
+         "config": {"measure": "Economia Operacional Anual"}},
+        {"name": "co2_total_card", "type": "card", "x": 540, "y": 125, "width": 240, "height": 85,
+         "config": {"measure": "CO2 Evitado Total Anual"}},
+        {"name": "payback_card", "type": "card", "x": 800, "y": 125, "width": 200, "height": 85,
+         "config": {"measure": "Payback Anos Consolidado"}},
+        {"name": "roi_pct_card", "type": "card", "x": 1020, "y": 125, "width": 240, "height": 85,
+         "config": {"measure": "ROI Anual Pct Consolidado"}},
+        {"name": "co2_t_real_card", "type": "card", "x": 1280, "y": 125, "width": 220, "height": 85,
+         "config": {"measure": "CO2 t por Real"}},
+        {"name": "inv_frota_card", "type": "card", "x": 20, "y": 230, "width": 240, "height": 85,
          "config": {"measure": "Investimento Frota"}},
-        {"name": "inv_solar_card", "type": "card", "x": 280, "y": 125, "width": 240, "height": 85,
+        {"name": "inv_solar_card", "type": "card", "x": 280, "y": 230, "width": 240, "height": 85,
          "config": {"measure": "Investimento Solar ROI"}},
-        {"name": "eco_frota_card", "type": "card", "x": 540, "y": 125, "width": 240, "height": 85,
+        {"name": "eco_frota_card", "type": "card", "x": 540, "y": 230, "width": 240, "height": 85,
          "config": {"measure": "Economia Anual Frota"}},
-        {"name": "eco_solar_card", "type": "card", "x": 800, "y": 125, "width": 240, "height": 85,
+        {"name": "eco_solar_card", "type": "card", "x": 800, "y": 230, "width": 240, "height": 85,
          "config": {"measure": "Economia Anual Solar"}},
-        {"name": "reais_bar", "type": "clusteredBarChart", "x": 20, "y": 230, "width": 600, "height": 240,
+        {"name": "reais_bar", "type": "clusteredBarChart", "x": 20, "y": 335, "width": 600, "height": 240,
          "config": {"category": {"table": "RoiInvestimento", "column": "categoria"}, "measure": "Reais por Real Investido"}},
-        {"name": "co2_bar", "type": "clusteredBarChart", "x": 640, "y": 230, "width": 620, "height": 240,
-         "config": {"category": {"table": "RoiInvestimento", "column": "categoria"}, "measure": "CO2 kg por Real"}},
-        {"name": "eco_acum_frota_linha", "type": "lineChart", "x": 20, "y": 490, "width": 620, "height": 260,
+        {"name": "co2_bar", "type": "clusteredBarChart", "x": 640, "y": 335, "width": 620, "height": 240,
+         "config": {"category": {"table": "RoiInvestimento", "column": "categoria"}, "measure": "CO2 t por Real"}},
+        {"name": "eco_acum_frota_linha", "type": "lineChart", "x": 20, "y": 595, "width": 620, "height": 260,
          "config": {"category": {"table": "Calendario", "column": "ano_mes"}, "measure": "Economia Acum Frota"}},
-        {"name": "eco_acum_solar_linha", "type": "lineChart", "x": 660, "y": 490, "width": 600, "height": 260,
+        {"name": "eco_acum_solar_linha", "type": "lineChart", "x": 660, "y": 595, "width": 600, "height": 260,
          "config": {"category": {"table": "Calendario", "column": "ano_mes"}, "measure": "Economia Acum Solar"}},
-        {"name": "eco_mensal_col", "type": "clusteredColumnChart", "x": 20, "y": 770, "width": 620, "height": 220,
+        {"name": "eco_acum_total_linha", "type": "lineChart", "x": 20, "y": 875, "width": 1240, "height": 200,
+         "config": {"category": {"table": "Calendario", "column": "ano_mes"}, "measure": "Economia Acum Total"}},
+        {"name": "eco_mensal_col", "type": "clusteredColumnChart", "x": 20, "y": 1095, "width": 620, "height": 220,
          "config": {"category": {"table": "RoiInvestimentoMensal", "column": "categoria"}, "measure": "Economia Mensal ROI"}},
-        {"name": "co2_mensal_col", "type": "clusteredColumnChart", "x": 660, "y": 770, "width": 600, "height": 220,
+        {"name": "co2_mensal_col", "type": "clusteredColumnChart", "x": 660, "y": 1095, "width": 600, "height": 220,
          "config": {"category": {"table": "RoiInvestimentoMensal", "column": "categoria"}, "measure": "CO2 Evitado Mensal kg"}},
-        {"name": "co2_acum_frota_linha", "type": "lineChart", "x": 20, "y": 1010, "width": 620, "height": 180,
+        {"name": "co2_acum_frota_linha", "type": "lineChart", "x": 20, "y": 1335, "width": 620, "height": 180,
          "config": {"category": {"table": "Calendario", "column": "ano_mes"}, "measure": "CO2 Acum Frota kg"}},
-        {"name": "co2_acum_solar_linha", "type": "lineChart", "x": 660, "y": 1010, "width": 600, "height": 180,
+        {"name": "co2_acum_solar_linha", "type": "lineChart", "x": 660, "y": 1335, "width": 600, "height": 180,
          "config": {"category": {"table": "Calendario", "column": "ano_mes"}, "measure": "CO2 Acum Solar kg"}},
+    ])
+
+    b.add_page("Simulador de Investimento", [
+        {"name": "input_slicer", "type": "slicer", "x": 20, "y": 20, "width": 420, "height": 120,
+         "config": {"column": {"table": "SimuladorInput", "column": "rotulo"}}},
+        {"name": "valor_input_card", "type": "card", "x": 460, "y": 20, "width": 280, "height": 120,
+         "config": {"measure": "Valor Investimento Selecionado"}},
+        {"name": "co2_sim_card", "type": "card", "x": 20, "y": 160, "width": 360, "height": 140,
+         "config": {"measure": "CO2 Evitado Simulado (kg)"}},
+        {"name": "eco_sim_card", "type": "card", "x": 400, "y": 160, "width": 360, "height": 140,
+         "config": {"measure": "Economia Simulada (R$)"}},
+        {"name": "co2_t_sim_card", "type": "card", "x": 780, "y": 160, "width": 300, "height": 140,
+         "config": {"measure": "CO2 Evitado Simulado (t)"}},
+        {"name": "taxa_co2_card", "type": "card", "x": 20, "y": 320, "width": 300, "height": 100,
+         "config": {"measure": "Taxa CO2 kg por Real"}},
+        {"name": "taxa_eco_card", "type": "card", "x": 340, "y": 320, "width": 300, "height": 100,
+         "config": {"measure": "Taxa Economia por Real"}},
+        {"name": "simulador_bar", "type": "clusteredColumnChart", "x": 20, "y": 440, "width": 600, "height": 280,
+         "config": {"category": {"table": "SimuladorInput", "column": "rotulo"}, "measure": "CO2 Evitado Simulado (kg)"}},
+        {"name": "simulador_eco_bar", "type": "clusteredColumnChart", "x": 640, "y": 440, "width": 600, "height": 280,
+         "config": {"category": {"table": "SimuladorInput", "column": "rotulo"}, "measure": "Economia Simulada (R$)"}},
     ])
 
     out = os.path.join(BASE, "EcoLogix_Dashboard.pbix")
