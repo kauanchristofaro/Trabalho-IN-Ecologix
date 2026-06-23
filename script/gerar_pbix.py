@@ -1,13 +1,14 @@
-"""Gera EcoLogix Dashboard.pbix com 6 páginas de dashboards."""
+"""Gera EcoLogix Dashboard.pbix com 7 páginas de dashboards."""
 import csv
 import os
 from pbix_mcp.builder import PBIXBuilder
 
-BASE = os.path.dirname(os.path.abspath(__file__))
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA = os.path.join(BASE, "data")
 
 
 def read_csv(name):
-    path = os.path.join(BASE, name)
+    path = os.path.join(DATA, name)
     with open(path, encoding="utf-8") as f:
         return list(csv.DictReader(f))
 
@@ -168,6 +169,28 @@ def main():
         r["ano_fundacao"] = to_int(r["ano_fundacao"])
         empresas.append(r)
 
+    roi_resumo = []
+    for r in read_csv("roi_investimento.csv"):
+        r["categoria_id"] = to_int(r["categoria_id"])
+        r["investimento_brl"] = to_int(r["investimento_brl"])
+        r["economia_anual_brl"] = to_int(r["economia_anual_brl"])
+        r["co2_evitado_anual_t"] = to_float(r["co2_evitado_anual_t"])
+        r["reais_por_real_investido"] = to_float(r["reais_por_real_investido"])
+        r["co2_kg_por_real"] = to_float(r["co2_kg_por_real"])
+        roi_resumo.append(r)
+
+    roi_mensal = []
+    for r in read_csv("roi_investimento_mensal.csv"):
+        r = add_periodo(r)
+        r["periodo_id"] = to_int(r["periodo_id"])
+        r["ano"] = to_int(r["ano"])
+        r["economia_mensal_brl"] = to_int(r["economia_mensal_brl"])
+        r["co2_evitado_mensal_kg"] = to_float(r["co2_evitado_mensal_kg"])
+        r["economia_acumulada_brl"] = to_int(r["economia_acumulada_brl"])
+        r["co2_evitado_acumulado_kg"] = to_float(r["co2_evitado_acumulado_kg"])
+        r["investimento_brl"] = to_int(r["investimento_brl"])
+        roi_mensal.append(r)
+
     b = PBIXBuilder("EcoLogix Solutions - Dashboard BI")
 
     b.add_table("Calendario", [
@@ -191,7 +214,7 @@ def main():
         {"name": "custo_medio_entrega_brl", "data_type": "Double"},
         {"name": "custo_reentrega_brl", "data_type": "Double"},
         {"name": "margem_lucro_entrega_brl", "data_type": "Double"},
-    ], rows=entregas, source_csv=os.path.join(BASE, "entregas_mensal.csv"))
+    ], rows=entregas, source_csv=os.path.join(DATA, "entregas_mensal.csv"))
 
     b.add_table("EntregasRegional", [
         {"name": "periodo_id", "data_type": "Int64"},
@@ -203,7 +226,7 @@ def main():
         {"name": "tempo_medio_entrega_min", "data_type": "Int64"},
         {"name": "produtividade_entregador_dia", "data_type": "Int64"},
         {"name": "taxa_reentrega_pct", "data_type": "Double"},
-    ], rows=regional, source_csv=os.path.join(BASE, "entregas_regional.csv"))
+    ], rows=regional, source_csv=os.path.join(DATA, "entregas_regional.csv"))
 
     b.add_table("FinanceiroMensal", [
         {"name": "periodo_id", "data_type": "Int64"},
@@ -216,7 +239,7 @@ def main():
         {"name": "custo_reentrega_total_brl", "data_type": "Int64"},
         {"name": "margem_lucro_entrega_brl", "data_type": "Double"},
         {"name": "custo_energia_rota_brl", "data_type": "Double"},
-    ], rows=financeiro, source_csv=os.path.join(BASE, "financeiro_mensal.csv"))
+    ], rows=financeiro, source_csv=os.path.join(DATA, "financeiro_mensal.csv"))
 
     b.add_table("SustentabilidadeMensal", [
         {"name": "periodo_id", "data_type": "Int64"},
@@ -228,7 +251,7 @@ def main():
         {"name": "modais_sustentaveis_pct", "data_type": "Int64"},
         {"name": "custo_energia_rota_brl", "data_type": "Double"},
         {"name": "emissao_co2_por_entrega_g", "data_type": "Int64"},
-    ], rows=sustentabilidade, source_csv=os.path.join(BASE, "sustentabilidade_mensal.csv"))
+    ], rows=sustentabilidade, source_csv=os.path.join(DATA, "sustentabilidade_mensal.csv"))
 
     b.add_table("ClientesMensal", [
         {"name": "periodo_id", "data_type": "Int64"},
@@ -239,7 +262,7 @@ def main():
         {"name": "taxa_reclamacoes_pct", "data_type": "Double"},
         {"name": "entregas_avaliadas", "data_type": "Int64"},
         {"name": "clientes_ativos", "data_type": "Int64"},
-    ], rows=clientes, source_csv=os.path.join(BASE, "clientes_mensal.csv"))
+    ], rows=clientes, source_csv=os.path.join(DATA, "clientes_mensal.csv"))
 
     b.add_table("ComparativoEmpresas", [
         {"name": "periodo_id", "data_type": "Int64"},
@@ -258,7 +281,7 @@ def main():
         {"name": "emissao_co2_toneladas", "data_type": "Double"},
         {"name": "total_entregas", "data_type": "Int64"},
         {"name": "margem_operacional_pct", "data_type": "Double"},
-    ], rows=comparativo, source_csv=os.path.join(BASE, "comparativo_empresas_mensal.csv"))
+    ], rows=comparativo, source_csv=os.path.join(DATA, "comparativo_empresas_mensal.csv"))
 
     b.add_table("ComparativoSerie", [
         {"name": "periodo_id", "data_type": "Int64"},
@@ -274,7 +297,7 @@ def main():
         {"name": "manutencao_logitrans", "data_type": "Int64"},
         {"name": "co2_ecologix", "data_type": "Double"},
         {"name": "co2_logitrans", "data_type": "Double"},
-    ], rows=comparativo_serie, source_csv=os.path.join(BASE, "comparativo_serie.csv"))
+    ], rows=comparativo_serie, source_csv=os.path.join(DATA, "comparativo_serie.csv"))
 
     b.add_table("CalendarioSemestre", [
         {"name": "semestre_ordem", "data_type": "Int64"},
@@ -301,7 +324,7 @@ def main():
         {"name": "economia_semestral", "data_type": "Int64"},
         {"name": "economia_acumulada", "data_type": "Int64"},
         {"name": "roi_atingido", "data_type": "Int64"},
-    ], rows=energia_semestre, source_csv=os.path.join(BASE, "energia_solar_semestral_wide.csv"))
+    ], rows=energia_semestre, source_csv=os.path.join(DATA, "energia_solar_semestral_wide.csv"))
 
     b.add_table("PaineisSolaresConfig", [
         {"name": "frota_veiculos", "data_type": "Int64"},
@@ -317,7 +340,7 @@ def main():
         {"name": "economia_mensal_media_brl", "data_type": "Int64"},
         {"name": "mes_roi", "data_type": "Int64"},
         {"name": "semestre_roi", "data_type": "Int64"},
-    ], rows=paineis_config, source_csv=os.path.join(BASE, "paineis_solares_config.csv"))
+    ], rows=paineis_config, source_csv=os.path.join(DATA, "paineis_solares_config.csv"))
 
     b.add_table("Empresas", [
         {"name": "empresa_id", "data_type": "Int64"},
@@ -327,12 +350,36 @@ def main():
         {"name": "frota_veiculos", "data_type": "Int64"},
         {"name": "ano_fundacao", "data_type": "Int64"},
         {"name": "descricao", "data_type": "String"},
-    ], rows=empresas, source_csv=os.path.join(BASE, "empresas.csv"))
+    ], rows=empresas, source_csv=os.path.join(DATA, "empresas.csv"))
+
+    b.add_table("RoiInvestimento", [
+        {"name": "categoria_id", "data_type": "Int64"},
+        {"name": "categoria", "data_type": "String"},
+        {"name": "tipo_tecnologia", "data_type": "String"},
+        {"name": "referencia_convencional", "data_type": "String"},
+        {"name": "investimento_brl", "data_type": "Int64"},
+        {"name": "economia_anual_brl", "data_type": "Int64"},
+        {"name": "co2_evitado_anual_t", "data_type": "Double"},
+        {"name": "reais_por_real_investido", "data_type": "Double"},
+        {"name": "co2_kg_por_real", "data_type": "Double"},
+    ], rows=roi_resumo, source_csv=os.path.join(DATA, "roi_investimento.csv"))
+
+    b.add_table("RoiInvestimentoMensal", [
+        {"name": "periodo_id", "data_type": "Int64"},
+        {"name": "mes", "data_type": "String"},
+        {"name": "ano", "data_type": "Int64"},
+        {"name": "categoria", "data_type": "String"},
+        {"name": "economia_mensal_brl", "data_type": "Int64"},
+        {"name": "co2_evitado_mensal_kg", "data_type": "Double"},
+        {"name": "economia_acumulada_brl", "data_type": "Int64"},
+        {"name": "co2_evitado_acumulado_kg", "data_type": "Double"},
+        {"name": "investimento_brl", "data_type": "Int64"},
+    ], rows=roi_mensal, source_csv=os.path.join(DATA, "roi_investimento_mensal.csv"))
 
     for tbl in [
         "EntregasMensal", "EntregasRegional", "FinanceiroMensal",
         "SustentabilidadeMensal", "ClientesMensal", "ComparativoEmpresas",
-        "ComparativoSerie",
+        "ComparativoSerie", "RoiInvestimentoMensal",
     ]:
         b.add_relationship(tbl, "periodo_id", "Calendario", "periodo_id")
     b.add_relationship("ComparativoEmpresas", "empresa", "Empresas", "empresa")
@@ -425,6 +472,65 @@ def main():
     b.add_measure("PaineisSolaresConfig", "Economia Mensal Media", "MAX(PaineisSolaresConfig[economia_mensal_media_brl])")
     b.add_measure("PaineisSolaresConfig", "Cobertura Solar Pct", "MAX(PaineisSolaresConfig[cobertura_solar_pct])")
     b.add_measure("PaineisSolaresConfig", "Semestre ROI", "MAX(PaineisSolaresConfig[semestre_roi])")
+
+    b.add_measure("RoiInvestimento", "Investimento Total ROI", "SUM(RoiInvestimento[investimento_brl])")
+    b.add_measure("RoiInvestimento", "Economia Anual ROI", "SUM(RoiInvestimento[economia_anual_brl])")
+    b.add_measure("RoiInvestimento", "CO2 Evitado Anual ROI", "SUM(RoiInvestimento[co2_evitado_anual_t])")
+    b.add_measure("RoiInvestimento", "Reais por Real Investido", "AVERAGE(RoiInvestimento[reais_por_real_investido])")
+    b.add_measure("RoiInvestimento", "CO2 kg por Real", "AVERAGE(RoiInvestimento[co2_kg_por_real])")
+    b.add_measure(
+        "RoiInvestimento", "Reais por Real Frota",
+        'CALCULATE(AVERAGE(RoiInvestimento[reais_por_real_investido]), RoiInvestimento[categoria] = "Frota Eletrica")',
+    )
+    b.add_measure(
+        "RoiInvestimento", "Reais por Real Solar",
+        'CALCULATE(AVERAGE(RoiInvestimento[reais_por_real_investido]), RoiInvestimento[categoria] = "Energia Solar")',
+    )
+    b.add_measure(
+        "RoiInvestimento", "CO2 kg por Real Frota",
+        'CALCULATE(AVERAGE(RoiInvestimento[co2_kg_por_real]), RoiInvestimento[categoria] = "Frota Eletrica")',
+    )
+    b.add_measure(
+        "RoiInvestimento", "CO2 kg por Real Solar",
+        'CALCULATE(AVERAGE(RoiInvestimento[co2_kg_por_real]), RoiInvestimento[categoria] = "Energia Solar")',
+    )
+    b.add_measure(
+        "RoiInvestimento", "Investimento Frota",
+        'CALCULATE(MAX(RoiInvestimento[investimento_brl]), RoiInvestimento[categoria] = "Frota Eletrica")',
+    )
+    b.add_measure(
+        "RoiInvestimento", "Investimento Solar ROI",
+        'CALCULATE(MAX(RoiInvestimento[investimento_brl]), RoiInvestimento[categoria] = "Energia Solar")',
+    )
+    b.add_measure(
+        "RoiInvestimento", "Economia Anual Frota",
+        'CALCULATE(MAX(RoiInvestimento[economia_anual_brl]), RoiInvestimento[categoria] = "Frota Eletrica")',
+    )
+    b.add_measure(
+        "RoiInvestimento", "Economia Anual Solar",
+        'CALCULATE(MAX(RoiInvestimento[economia_anual_brl]), RoiInvestimento[categoria] = "Energia Solar")',
+    )
+
+    b.add_measure("RoiInvestimentoMensal", "Economia Mensal ROI", "SUM(RoiInvestimentoMensal[economia_mensal_brl])")
+    b.add_measure("RoiInvestimentoMensal", "Economia Acumulada ROI", "MAX(RoiInvestimentoMensal[economia_acumulada_brl])")
+    b.add_measure("RoiInvestimentoMensal", "CO2 Evitado Mensal kg", "SUM(RoiInvestimentoMensal[co2_evitado_mensal_kg])")
+    b.add_measure("RoiInvestimentoMensal", "CO2 Acumulado kg", "MAX(RoiInvestimentoMensal[co2_evitado_acumulado_kg])")
+    b.add_measure(
+        "RoiInvestimentoMensal", "Economia Acum Frota",
+        'CALCULATE(MAX(RoiInvestimentoMensal[economia_acumulada_brl]), RoiInvestimentoMensal[categoria] = "Frota Eletrica")',
+    )
+    b.add_measure(
+        "RoiInvestimentoMensal", "Economia Acum Solar",
+        'CALCULATE(MAX(RoiInvestimentoMensal[economia_acumulada_brl]), RoiInvestimentoMensal[categoria] = "Energia Solar")',
+    )
+    b.add_measure(
+        "RoiInvestimentoMensal", "CO2 Acum Frota kg",
+        'CALCULATE(MAX(RoiInvestimentoMensal[co2_evitado_acumulado_kg]), RoiInvestimentoMensal[categoria] = "Frota Eletrica")',
+    )
+    b.add_measure(
+        "RoiInvestimentoMensal", "CO2 Acum Solar kg",
+        'CALCULATE(MAX(RoiInvestimentoMensal[co2_evitado_acumulado_kg]), RoiInvestimentoMensal[categoria] = "Energia Solar")',
+    )
 
     b.add_page("Dashboard Executivo", [
         {"name": "nps_card", "type": "card", "x": 20, "y": 20, "width": 240, "height": 110,
@@ -578,10 +684,47 @@ def main():
          "config": {"category": {"table": "EnergiaSolarSemestre", "column": "semestre_label"}, "measure": "Economia Acumulada"}},
     ])
 
+    b.add_page("Dashboard ROI por Real", [
+        {"name": "categoria_roi_slicer", "type": "slicer", "x": 20, "y": 20, "width": 280, "height": 90,
+         "config": {"column": {"table": "RoiInvestimento", "column": "categoria"}}},
+        {"name": "reais_frota_card", "type": "card", "x": 320, "y": 20, "width": 220, "height": 90,
+         "config": {"measure": "Reais por Real Frota"}},
+        {"name": "reais_solar_card", "type": "card", "x": 560, "y": 20, "width": 220, "height": 90,
+         "config": {"measure": "Reais por Real Solar"}},
+        {"name": "co2_frota_card", "type": "card", "x": 800, "y": 20, "width": 220, "height": 90,
+         "config": {"measure": "CO2 kg por Real Frota"}},
+        {"name": "co2_solar_card", "type": "card", "x": 1040, "y": 20, "width": 220, "height": 90,
+         "config": {"measure": "CO2 kg por Real Solar"}},
+        {"name": "inv_frota_card", "type": "card", "x": 20, "y": 125, "width": 240, "height": 85,
+         "config": {"measure": "Investimento Frota"}},
+        {"name": "inv_solar_card", "type": "card", "x": 280, "y": 125, "width": 240, "height": 85,
+         "config": {"measure": "Investimento Solar ROI"}},
+        {"name": "eco_frota_card", "type": "card", "x": 540, "y": 125, "width": 240, "height": 85,
+         "config": {"measure": "Economia Anual Frota"}},
+        {"name": "eco_solar_card", "type": "card", "x": 800, "y": 125, "width": 240, "height": 85,
+         "config": {"measure": "Economia Anual Solar"}},
+        {"name": "reais_bar", "type": "clusteredBarChart", "x": 20, "y": 230, "width": 600, "height": 240,
+         "config": {"category": {"table": "RoiInvestimento", "column": "categoria"}, "measure": "Reais por Real Investido"}},
+        {"name": "co2_bar", "type": "clusteredBarChart", "x": 640, "y": 230, "width": 620, "height": 240,
+         "config": {"category": {"table": "RoiInvestimento", "column": "categoria"}, "measure": "CO2 kg por Real"}},
+        {"name": "eco_acum_frota_linha", "type": "lineChart", "x": 20, "y": 490, "width": 620, "height": 260,
+         "config": {"category": {"table": "Calendario", "column": "ano_mes"}, "measure": "Economia Acum Frota"}},
+        {"name": "eco_acum_solar_linha", "type": "lineChart", "x": 660, "y": 490, "width": 600, "height": 260,
+         "config": {"category": {"table": "Calendario", "column": "ano_mes"}, "measure": "Economia Acum Solar"}},
+        {"name": "eco_mensal_col", "type": "clusteredColumnChart", "x": 20, "y": 770, "width": 620, "height": 220,
+         "config": {"category": {"table": "RoiInvestimentoMensal", "column": "categoria"}, "measure": "Economia Mensal ROI"}},
+        {"name": "co2_mensal_col", "type": "clusteredColumnChart", "x": 660, "y": 770, "width": 600, "height": 220,
+         "config": {"category": {"table": "RoiInvestimentoMensal", "column": "categoria"}, "measure": "CO2 Evitado Mensal kg"}},
+        {"name": "co2_acum_frota_linha", "type": "lineChart", "x": 20, "y": 1010, "width": 620, "height": 180,
+         "config": {"category": {"table": "Calendario", "column": "ano_mes"}, "measure": "CO2 Acum Frota kg"}},
+        {"name": "co2_acum_solar_linha", "type": "lineChart", "x": 660, "y": 1010, "width": 600, "height": 180,
+         "config": {"category": {"table": "Calendario", "column": "ano_mes"}, "measure": "CO2 Acum Solar kg"}},
+    ])
+
     out = os.path.join(BASE, "EcoLogix_Dashboard.pbix")
     b.save(out)
     print(f"Arquivo criado: {out}")
-    print("Abra no Power BI Desktop. 6 paginas, 11 tabelas, 42 medidas, 58 visuais.")
+    print("Abra no Power BI Desktop. 7 paginas, 13 tabelas, 56 medidas, 71 visuais.")
 
 
 if __name__ == "__main__":

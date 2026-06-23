@@ -1,0 +1,3 @@
+categoria_id,categoria,tipo_tecnologia,referencia_convencional,investimento_brl,economia_anual_brl,co2_evitado_anual_t,reais_por_real_investido,co2_kg_por_real
+1,Frota Eletrica,Carros Eletricos,Frota Diesel,3500000,482628,105.2,0.1379,0.0301
+2,Energia Solar,Fonte Renovável,Rede Convencional,250000,41177,5.23,0.1647,0.0209

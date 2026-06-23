@@ -3,7 +3,7 @@ import csv
 import math
 import os
 
-BASE = os.path.dirname(os.path.abspath(__file__))
+BASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data")
 
 MESES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
 
@@ -49,6 +49,11 @@ POTENCIA_PAINEL_W = 550
 HORAS_SOL_PICO = 4.5
 CUSTO_INSTALACAO = 250_000
 CUSTO_OM_MENSAL = 1200
+
+# --- Investimento em frota elétrica (van utilitária de entregas) ---
+CUSTO_VEICULO_ELETRICO = 175_000
+CUSTO_VEICULO_CONVENCIONAL = 115_000
+INVESTIMENTO_FROTA_ELETRICA = FROTA_VEICULOS * CUSTO_VEICULO_ELETRICO
 
 
 def read_csv(name):
@@ -398,9 +403,118 @@ def gerar_energia_solar():
     print(f"  Economia mensal média: R$ {config[0]['economia_mensal_media_brl']:,}")
 
 
+def gerar_roi_investimento():
+    """ROI sustentável: economia e CO2 evitado por real investido (frota elétrica e solar)."""
+    serie = read_csv("comparativo_serie.csv")
+    energia = [r for r in read_csv("energia_solar_mensal.csv") if r["cenario"] == "Com Painel"]
+
+    mensal = []
+    acum_frota_eco = 0
+    acum_frota_co2_kg = 0
+    acum_solar_eco = 0
+    acum_solar_co2_kg = 0
+    kwh_solar_mes = kwh_geracao_solar_mes()
+    co2_solar_mes_kg = round(kwh_solar_mes * FATOR_CO2_KWH, 1)
+
+    energia_por_mes = {}
+    for r in energia:
+        if int(r["ano"]) == 2025:
+            energia_por_mes[r["mes"]] = r
+
+    for r in serie:
+        if int(r["ano"]) != 2025:
+            continue
+        mes = r["mes"]
+        pid = int(r["periodo_id"])
+        eco_frota = (
+            int(r["combustivel_logitrans"]) + int(r["manutencao_logitrans"])
+            - int(r["combustivel_ecologix"]) - int(r["manutencao_ecologix"])
+        )
+        co2_frota_kg = round((float(r["co2_logitrans"]) - float(r["co2_ecologix"])) * 1000, 1)
+        acum_frota_eco += eco_frota
+        acum_frota_co2_kg += co2_frota_kg
+
+        mensal.append({
+            "periodo_id": pid,
+            "mes": mes,
+            "ano": r["ano"],
+            "categoria": "Frota Eletrica",
+            "economia_mensal_brl": eco_frota,
+            "co2_evitado_mensal_kg": co2_frota_kg,
+            "economia_acumulada_brl": acum_frota_eco,
+            "co2_evitado_acumulado_kg": round(acum_frota_co2_kg, 1),
+            "investimento_brl": INVESTIMENTO_FROTA_ELETRICA,
+        })
+
+        eco_solar = int(energia_por_mes[mes]["economia_mensal_brl"]) if mes in energia_por_mes else 0
+        acum_solar_eco += eco_solar
+        acum_solar_co2_kg += co2_solar_mes_kg
+        mensal.append({
+            "periodo_id": pid,
+            "mes": mes,
+            "ano": r["ano"],
+            "categoria": "Energia Solar",
+            "economia_mensal_brl": eco_solar,
+            "co2_evitado_mensal_kg": co2_solar_mes_kg,
+            "economia_acumulada_brl": acum_solar_eco,
+            "co2_evitado_acumulado_kg": round(acum_solar_co2_kg, 1),
+            "investimento_brl": CUSTO_INSTALACAO,
+        })
+
+    mensal_fields = [
+        "periodo_id", "mes", "ano", "categoria",
+        "economia_mensal_brl", "co2_evitado_mensal_kg",
+        "economia_acumulada_brl", "co2_evitado_acumulado_kg", "investimento_brl",
+    ]
+    write_csv("roi_investimento_mensal.csv", mensal_fields, mensal)
+
+    frota_eco_anual = acum_frota_eco
+    frota_co2_t = round(acum_frota_co2_kg / 1000, 2)
+    solar_eco_anual = acum_solar_eco
+    solar_co2_t = round(acum_solar_co2_kg / 1000, 2)
+
+    resumo = [
+        {
+            "categoria_id": 1,
+            "categoria": "Frota Eletrica",
+            "tipo_tecnologia": "Carros Eletricos",
+            "referencia_convencional": "Frota Diesel",
+            "investimento_brl": INVESTIMENTO_FROTA_ELETRICA,
+            "economia_anual_brl": frota_eco_anual,
+            "co2_evitado_anual_t": frota_co2_t,
+            "reais_por_real_investido": round(frota_eco_anual / INVESTIMENTO_FROTA_ELETRICA, 4),
+            "co2_kg_por_real": round(frota_co2_t * 1000 / INVESTIMENTO_FROTA_ELETRICA, 4),
+        },
+        {
+            "categoria_id": 2,
+            "categoria": "Energia Solar",
+            "tipo_tecnologia": "Fonte Renovável",
+            "referencia_convencional": "Rede Convencional",
+            "investimento_brl": CUSTO_INSTALACAO,
+            "economia_anual_brl": solar_eco_anual,
+            "co2_evitado_anual_t": solar_co2_t,
+            "reais_por_real_investido": round(solar_eco_anual / CUSTO_INSTALACAO, 4),
+            "co2_kg_por_real": round(solar_co2_t * 1000 / CUSTO_INSTALACAO, 4),
+        },
+    ]
+    resumo_fields = [
+        "categoria_id", "categoria", "tipo_tecnologia", "referencia_convencional",
+        "investimento_brl", "economia_anual_brl", "co2_evitado_anual_t",
+        "reais_por_real_investido", "co2_kg_por_real",
+    ]
+    write_csv("roi_investimento.csv", resumo_fields, resumo)
+    print(
+        f"Gerado: roi_investimento.csv | Frota: R$ {frota_eco_anual:,}/ano "
+        f"({resumo[0]['reais_por_real_investido']:.4f} R$/R$) | "
+        f"Solar: R$ {solar_eco_anual:,}/ano ({resumo[1]['reais_por_real_investido']:.4f} R$/R$)"
+    )
+    print(f"Gerado: roi_investimento_mensal.csv ({len(mensal)} linhas)")
+
+
 def main():
     gerar_comparativo()
     gerar_energia_solar()
+    gerar_roi_investimento()
 
 
 if __name__ == "__main__":
