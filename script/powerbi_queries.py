@@ -39,7 +39,7 @@ TABLES = {
     "ComparativoEmpresas": {
         "csv": "comparativo_empresas_mensal.csv",
         "periodo_id": True,
-        "types": '{"periodo_id", Int64.Type}, {"mes", Text.Type}, {"ano", Int64.Type}, {"empresa", Text.Type}, {"tipo_frota", Text.Type}, {"frota_veiculos", Int64.Type}, {"km_mes_frota", Int64.Type}, {"bandeira_tarifaria", Text.Type}, {"tarifa_kwh", Number.Type}, {"kwh_consumo_mes", Int64.Type}, {"faturamento_brl", Int64.Type}, {"custo_combustivel_brl", Int64.Type}, {"custo_manutencao_brl", Int64.Type}, {"emissao_co2_toneladas", Number.Type}, {"total_entregas", Int64.Type}, {"margem_operacional_pct", Number.Type}',
+        "types": '{"periodo_id", Int64.Type}, {"mes", Text.Type}, {"ano", Int64.Type}, {"empresa", Text.Type}, {"tipo_frota", Text.Type}, {"frota_veiculos", Int64.Type}, {"km_mes_frota", Int64.Type}, {"bandeira_tarifaria", Text.Type}, {"tarifa_kwh", Number.Type}, {"kwh_consumo_mes", Int64.Type}, {"receita_total_brl", Int64.Type}, {"faturamento_brl", Int64.Type}, {"custo_combustivel_brl", Int64.Type}, {"custo_manutencao_brl", Int64.Type}, {"emissao_co2_toneladas", Number.Type}, {"co2_por_entrega_g", Int64.Type}, {"total_entregas", Int64.Type}, {"custo_medio_entrega_brl", Number.Type}, {"margem_lucro_entrega_brl", Number.Type}, {"margem_operacional_pct", Number.Type}, {"frota_combustao_pct", Int64.Type}',
     },
     "ComparativoSerie": {
         "csv": "comparativo_serie.csv",

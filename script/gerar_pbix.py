@@ -275,12 +275,17 @@ def main():
         {"name": "bandeira_tarifaria", "data_type": "String"},
         {"name": "tarifa_kwh", "data_type": "Double"},
         {"name": "kwh_consumo_mes", "data_type": "Int64"},
+        {"name": "receita_total_brl", "data_type": "Int64"},
         {"name": "faturamento_brl", "data_type": "Int64"},
         {"name": "custo_combustivel_brl", "data_type": "Int64"},
         {"name": "custo_manutencao_brl", "data_type": "Int64"},
         {"name": "emissao_co2_toneladas", "data_type": "Double"},
+        {"name": "co2_por_entrega_g", "data_type": "Int64"},
         {"name": "total_entregas", "data_type": "Int64"},
+        {"name": "custo_medio_entrega_brl", "data_type": "Double"},
+        {"name": "margem_lucro_entrega_brl", "data_type": "Double"},
         {"name": "margem_operacional_pct", "data_type": "Double"},
+        {"name": "frota_combustao_pct", "data_type": "Int64"},
     ], rows=comparativo, source_csv=os.path.join(DATA, "comparativo_empresas_mensal.csv"))
 
     b.add_table("ComparativoSerie", [

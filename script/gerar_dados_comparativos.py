@@ -95,40 +95,54 @@ def kwh_geracao_solar_mes():
 def gerar_comparativo():
     financeiro = {r["mes"]: r for r in read_csv("financeiro_mensal.csv")}
     entregas = {r["mes"]: r for r in read_csv("entregas_mensal.csv")}
+    sustentabilidade = {r["mes"]: r for r in read_csv("sustentabilidade_mensal.csv")}
 
     comparativo = []
 
     for i, mes in enumerate(MESES):
         fin = financeiro[mes]
         ent = entregas[mes]
+        sus = sustentabilidade[mes]
         ano = fin["ano"]
         km_total = km_mes_frota(i)
         kwh_km = kwh_km_mes(i)
         kwh_consumo = round(km_total * kwh_km)
         bandeira, tarifa = bandeira_mes(i)
-        distancia = float(ent["distancia_media_km"])
-        total_entregas = round(km_total / distancia)
+        total_entregas = int(ent["total_entregas"])
 
-        faturamento_eco = round(total_entregas * float(fin["receita_total_brl"]) / int(ent["total_entregas"]))
+        receita_eco = int(fin["receita_total_brl"])
         margem_eco = float(fin["margem_lucro_operacional_pct"])
+        custo_medio_eco = float(fin["custo_medio_entrega_brl"])
+        margem_entrega_eco = float(fin["margem_lucro_entrega_brl"])
+        frota_combustao_eco = 100 - int(sus["frota_eletrica_pct"])
 
         custo_energia_eco = round(kwh_consumo * tarifa)
         custo_manutencao_eco = FROTA_VEICULOS * MANUT_ELETRICO_VEIC_MES
         emissao_co2_eco = round(kwh_consumo * FATOR_CO2_KWH / 1000, 2)
+        co2_por_entrega_eco = round(emissao_co2_eco * 1_000_000 / total_entregas)
 
-        faturamento_logi = round(faturamento_eco * 0.95)
+        receita_logi = round(receita_eco * 0.95)
         margem_logi = round(margem_eco - 4.3, 1)
         custo_combustivel_logi = round(km_total * CONSUMO_DIESEL_KM * PRECO_DIESEL)
         custo_manutencao_logi = FROTA_VEICULOS * MANUT_DIESEL_VEIC_MES
         emissao_co2_logi = round(km_total * FATOR_CO2_DIESEL_KG_KM / 1000, 2)
+        co2_por_entrega_logi = round(emissao_co2_logi * 1_000_000 / total_entregas)
 
-        for empresa, tipo, fat, comb, manut, co2, margem in [
-            ("EcoLogix Solutions", "Eletrica", faturamento_eco, custo_energia_eco,
-             custo_manutencao_eco, emissao_co2_eco, margem_eco),
-            ("LogiTrans Express", "Convencional", faturamento_logi, custo_combustivel_logi,
-             custo_manutencao_logi, emissao_co2_logi, margem_logi),
+        margem_entrega_logi = round(max(0.5, margem_entrega_eco - 2.0), 2)
+        receita_por_entrega_logi = receita_logi / total_entregas
+        custo_medio_logi = round(receita_por_entrega_logi - margem_entrega_logi, 2)
+        periodo_id = int(ano) * 100 + (i + 1)
+
+        for empresa, tipo, receita, comb, manut, co2, margem, co2_ent, custo_med, margem_ent, frota_comb in [
+            ("EcoLogix Solutions", "Eletrica", receita_eco, custo_energia_eco,
+             custo_manutencao_eco, emissao_co2_eco, margem_eco, co2_por_entrega_eco,
+             custo_medio_eco, margem_entrega_eco, frota_combustao_eco),
+            ("LogiTrans Express", "Convencional", receita_logi, custo_combustivel_logi,
+             custo_manutencao_logi, emissao_co2_logi, margem_logi, co2_por_entrega_logi,
+             custo_medio_logi, margem_entrega_logi, 100),
         ]:
             comparativo.append({
+                "periodo_id": periodo_id,
                 "mes": mes,
                 "ano": ano,
                 "empresa": empresa,
@@ -138,19 +152,26 @@ def gerar_comparativo():
                 "bandeira_tarifaria": bandeira,
                 "tarifa_kwh": tarifa,
                 "kwh_consumo_mes": kwh_consumo,
-                "faturamento_brl": fat,
+                "receita_total_brl": receita,
+                "faturamento_brl": receita,
                 "custo_combustivel_brl": comb,
                 "custo_manutencao_brl": manut,
                 "emissao_co2_toneladas": co2,
+                "co2_por_entrega_g": co2_ent,
                 "total_entregas": total_entregas,
+                "custo_medio_entrega_brl": custo_med,
+                "margem_lucro_entrega_brl": margem_ent,
                 "margem_operacional_pct": margem,
+                "frota_combustao_pct": frota_comb,
             })
 
     fields = [
-        "mes", "ano", "empresa", "tipo_frota", "frota_veiculos", "km_mes_frota",
+        "periodo_id", "mes", "ano", "empresa", "tipo_frota", "frota_veiculos", "km_mes_frota",
         "bandeira_tarifaria", "tarifa_kwh", "kwh_consumo_mes",
-        "faturamento_brl", "custo_combustivel_brl", "custo_manutencao_brl",
-        "emissao_co2_toneladas", "total_entregas", "margem_operacional_pct",
+        "receita_total_brl", "faturamento_brl", "custo_combustivel_brl", "custo_manutencao_brl",
+        "emissao_co2_toneladas", "co2_por_entrega_g", "total_entregas",
+        "custo_medio_entrega_brl", "margem_lucro_entrega_brl",
+        "margem_operacional_pct", "frota_combustao_pct",
     ]
     write_csv("comparativo_empresas_mensal.csv", fields, comparativo)
     print(f"Gerado: comparativo_empresas_mensal.csv ({len(comparativo)} linhas, frota={FROTA_VEICULOS})")
@@ -515,6 +536,8 @@ def main():
     gerar_comparativo()
     gerar_energia_solar()
     gerar_roi_investimento()
+    from preparar_csv import main as preparar_csv
+    preparar_csv()
 
 
 if __name__ == "__main__":
